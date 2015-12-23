@@ -50,7 +50,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     @IBAction func findDirections(sender: AnyObject) {
         print("find directions button pressed")
         //getAllStations()
-         getClosestPoints(40.7127, lngA: -74.0059, latB: 40.7256, lngB: -74.0156)
+        getClosestPoints(40.7127, lngA: -74.0059, latB: 40.7256, lngB: -74.0156)
+        getClosestPoints(40.7127, lngA: -74.0459, latB: 40.7467, lngB: -74.0156)
 //        let alert = UIAlertController(title: "Start", message: "Destination", preferredStyle: UIAlertControllerStyle.Alert)
 //        alert.addTextFieldWithConfigurationHandler(srcTextField)
 //        alert.addTextFieldWithConfigurationHandler(destTextField)
@@ -229,6 +230,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         
     }
     
+    func removeAllAnnotations() {
+        let annotations = mapView.annotations!.filter {
+            $0 !== self.mapView.userLocation
+        }
+        mapView.removeAnnotations(annotations)
+    }
+    
     func locationManager(manager: CLLocationManager, didUpdateLocations locations:[CLLocation]) {
         myLocations.append(locations[0] )
         
@@ -302,18 +310,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         task.resume()
     }
     
-    func addMarker(lat: Double, lng: Double) {
-        // Declare the marker `hello` and set its coordinates, title, and subtitle
+    func addMarker(lat: Double, lng: Double, title: String?) {
         let hello = MGLPointAnnotation()
         hello.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
-        hello.title = "Latitude:\(lat)"
-        hello.subtitle = "Longitude:\(lng)"
+        hello.title = (title != nil) ? title : "Hello!"
+        hello.subtitle = "(\(lat), \(lng)"
         // Add marker `hello` to the map
         mapView.addAnnotation(hello)
     }
     
     func addMarker(lat: Double, lng: Double, bikes: Double, docks: Double) {
-        // Declare the marker `hello` and set its coordinates, title, and subtitle
         let hello = MGLPointAnnotation()
         hello.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
         hello.title = "Hello world!"
@@ -324,9 +330,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     }
     
     func markClosestPoints(latA: Double, lngA: Double, latB: Double, lngB: Double) {
-        addMarker(latA, lng: lngA)
+        addMarker(latA, lng: lngA, title: "Start")
         print("\(latA), \(lngA)")
-        addMarker(latB, lng: lngB)
+        addMarker(latB, lng: lngB, title: "End")
         print("\(latB), \(lngB)")
     }
     
@@ -381,8 +387,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
             print(nearestDestLat)
             print(nearestDestLong)
             
-            self.addMarker(nearestSourceLat, lng: nearestSourceLong)
-            self.addMarker(nearestDestLat, lng: nearestDestLong)
+            self.addMarker(nearestSourceLat, lng: nearestSourceLong, title: "Start")
+            self.addMarker(nearestDestLat, lng: nearestDestLong, title: "End")
 
             // Get routes for nearest points
             self.getRoutes(nearestSourceLat, lngA: nearestSourceLong, latB: nearestDestLat, lngB: nearestDestLong)
@@ -395,8 +401,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     
         func getRoutes(latA: Double, lngA: Double, latB: Double, lngB: Double) {
             /* get the nearest source and dest points and pass to the /getRoutes */
+//            removeAllAnnotations()
 //            let postsEndpoint: String = "http://ridewithme-routing.elasticbeanstalk.com/getRoutes"
-            
             let postsEndpoint: String = "http://deccd670.ngrok.io/getRoutes"
             guard let postsURL = NSURL(string: postsEndpoint) else {
                 print("Error: cannot create URL")
@@ -475,7 +481,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
 
                     }
                     
-                    
                 // END OF CALLBACK
                 })
             
@@ -483,34 +488,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
             
             /* Use min distance and duration and Surface details; sum three thing - just select the first route */
         }
-    
-//    func drawPolyline() {
-//        let line = MGLPolyline(coordinates: &coordinates, count: UInt(coordinates.count))
-//                                        
-//                                        // Optionally set the title of the polyline, which can be used for:
-//                                        //  - Callout view
-//                                        //  - Object identification
-//                                        line.title = "Crema to Council Crest"
-//                                        
-//                                        // Add the annotation on the main thread
-//                                        dispatch_async(dispatch_get_main_queue(), {
-//                                            // Unowned reference to self to prevent retain cycle
-//                                            [unowned self] in
-//                                            
-//                                            })
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            catch
-//            {
-//                print("GeoJSON parsing failed")
-//            }
-//        })
-//    }
     
     func updateMapFrame() {
         self.mapView.centerCoordinate = self.currentLocation.coordinate
