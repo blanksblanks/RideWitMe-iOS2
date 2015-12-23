@@ -11,6 +11,21 @@ import CoreLocation
 
 class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate {
 
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        let gpaViewController = GooglePlacesAutocomplete(
+            apiKey: "AIzaSyAh9WkG-N-PSAxo6zl_AyBdQePN54PIO-0",
+            placeType: .Address
+        )
+        
+        gpaViewController.placeDelegate = self
+        
+        presentViewController(gpaViewController, animated: true, completion: nil)
+        
+        
+    }
+    
     var mapView: MGLMapView!
     var manager: CLLocationManager!
 
@@ -240,6 +255,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         super.didReceiveMemoryWarning()
     }
 
-
 }
 
+extension ViewController:GooglePlacesAutocompleteDelegate{
+    func placeSelected(place: Place) {
+        print(place.description)
+    }
+    
+    func placeViewClosed() {
+        dismissViewControllerAnimated(true, completion: nil)
+    }
+}
