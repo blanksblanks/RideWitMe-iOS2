@@ -450,6 +450,7 @@
 				INFOPLIST_FILE = citiBike/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = "citiBike/citiBike-Bridging-Header.h";
 			};
 			name = Debug;
@@ -462,6 +463,7 @@
 				INFOPLIST_FILE = citiBike/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = "citiBike/citiBike-Bridging-Header.h";
 			};
 			name = Release;

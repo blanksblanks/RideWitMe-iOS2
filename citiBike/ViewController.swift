@@ -12,21 +12,22 @@ import Foundation
 import MapKit
 
 class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate {
-
-//    override func viewDidAppear(animated: Bool) {
-//        super.viewDidAppear(animated)
-//
-//        let gpaViewController = GooglePlacesAutocomplete(
-//            apiKey: "AIzaSyAh9WkG-N-PSAxo6zl_AyBdQePN54PIO-0",
-//            placeType: .Address
-//        )
-//
-//        gpaViewController.placeDelegate = self
-//
+    
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        let gpaViewController = GooglePlacesAutocomplete(
+            apiKey: "AIzaSyAh9WkG-N-PSAxo6zl_AyBdQePN54PIO-0",
+            placeType: .Address
+        )
+        
+        gpaViewController.placeDelegate = self
+        
 //        presentViewController(gpaViewController, animated: true, completion: nil)
-//        
-//        
-//    }
+        
+        
+    }
+
     
     var mapView: MGLMapView!
     var manager: CLLocationManager!
@@ -48,43 +49,66 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     
     //find directions button
     @IBAction func findDirections(sender: AnyObject) {
+//        removeAllAnnotations()
         print("find directions button pressed")
-        //getAllStations()
-        getClosestPoints(40.7127, lngA: -74.0059, latB: 40.7256, lngB: -74.0156)
-        getClosestPoints(40.7127, lngA: -74.0459, latB: 40.7467, lngB: -74.0156)
-//        let alert = UIAlertController(title: "Start", message: "Destination", preferredStyle: UIAlertControllerStyle.Alert)
-//        alert.addTextFieldWithConfigurationHandler(srcTextField)
-//        alert.addTextFieldWithConfigurationHandler(destTextField)
-//        let _ = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) {
-//            UIAlertAction in
-//            NSLog("OK Pressed")
+        getAllStations()
+//        getClosestPoints(40.7127, lngA: -74.0059, latB: 40.7256, lngB: -74.0156)
+//        getClosestPoints(40.7127, lngA: -74.0459, latB: 40.7467, lngB: -74.0156)
+        let loc_alert = UIAlertController(title: "Start", message: "End", preferredStyle: UIAlertControllerStyle.Alert)
+        loc_alert.addTextFieldWithConfigurationHandler(srcTextField)
+        loc_alert.addTextFieldWithConfigurationHandler(destTextField)
+        let yes = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) {
+            UIAlertAction in
+            NSLog("OK Pressed")
+//            if (self.srcField?.text == "" ) {
+//                self.getAllStations()
+//            } else {
 //            if let title = self.srcField?.text {
-//                let latlngArrA = self.convertStringToArray(title)
-//                let latlngArrB = self.convertStringToArray((self.destField?.text)!)
-//                self.getClosestPoints(latlngArrA[0] as! Double, lngA: latlngArrA[1] as! Double, latB: latlngArrB[0] as! Double, lngB: latlngArrB[1] as! Double)
+            var latlngArrA = self.convertStringToArray(("40.7127,-74.0459"))
+            var latlngArrB = self.convertStringToArray(("40.7467,-74.0156"))
+            if (self.srcField!.text!.isEmpty==false) {
+                latlngArrA = self.convertStringToArray((self.srcField?.text)!)
+                latlngArrB = self.convertStringToArray((self.destField?.text)!)
+            }
+                self.getClosestPoints(latlngArrA[0] as! Double, lngA: latlngArrA[1] as! Double, latB: latlngArrB[0] as! Double, lngB: latlngArrB[1] as! Double)
+//
+        }
 //            } else {
 //                print("Please give your current geolocation and desigred geolocation!")
 //            }
+//            40.1, -74.0 40.5, -74.0
 //        }
+        let no = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.Cancel) {
+            UIAlertAction in
+            NSLog("Cancel Pressed")
+        }
+        
+        // Add the actions
+        loc_alert.addAction(yes)
+        loc_alert.addAction(no)
+
+        
+        self.presentViewController(loc_alert, animated: true, completion: nil)
+
 
     }
     
     func srcTextField(textField: UITextField!){
         // add the text field and make the result global
-        textField.placeholder = "Longitude,Latitude"
-        groupTitleField=textField
-        
+        textField.placeholder = "40.7127,-74.0459"
+        srcField=textField
     }
     
     func destTextField(textField: UITextField!){
         // add the text field and make the result global
-        textField.placeholder = "Longitude,Latitude"
-        passwordField=textField
+        textField.placeholder = "40.7467,-74.0156"
+        destField=textField
         
     }
     
     func convertStringToArray(s: String) -> NSArray {
-        let latlngArr = s.characters.split{$0 == ","}.map(String.init)
+        let latlngArr = s.componentsSeparatedByString(",")
+//        let latlngArr = s.characters.split{$0 == ","}.map(String.init)
         return [ ((latlngArr[0] as NSString).doubleValue), ((latlngArr[1] as NSString).doubleValue) ]
     }
     
@@ -219,6 +243,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
             longitude: -73.9843407),
             zoomLevel: 12, animated: false)
         
+        
         // Set the delegate property of our map view to self after instantiating it
         mapView.delegate=self
         mapView.showsUserLocation=true
@@ -302,12 +327,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                 for station in stationList {
                     let latitude = (station["latitude"] as! NSNumber).doubleValue
                     let longitude = (station["longitude"] as! NSNumber).doubleValue
+//                    let b = (station["bikes"] as! NSNumber).doubleValue
+//                    let d = (station["docks"] as! NSNumber).doubleValue
                     //                    print(latitude, ", ", longitude)
                     self.addMarker(latitude, lng: longitude, bikes: 1, docks: 1)
                 }
             }
         })
         task.resume()
+    }
+    @IBAction func getAllStations(sender: AnyObject) {
     }
     
     func addMarker(lat: Double, lng: Double, title: String?) {
@@ -319,12 +348,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         mapView.addAnnotation(hello)
     }
     
-    func addMarker(lat: Double, lng: Double, bikes: Double, docks: Double) {
+    func addMarker(lat: Double, lng: Double, bikes: Double?, docks: Double?) {
         let hello = MGLPointAnnotation()
         hello.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
         hello.title = "Hello world!"
-        hello.subtitle = "Welcome to my marker"
-        // Add marker `hello` to the map
+        hello.subtitle = "(\(lat), \(lng)"
+//        if (0.3 > (docks/(bikes + docks)) < 0.6)
+          // yellow
+//        else if (bikes > docks)
+         // green
+//        else
+          // red
         mapView.addAnnotation(hello)
         
     }
@@ -338,8 +372,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     
     func getClosestPoints(latA: Double, lngA: Double, latB: Double, lngB: Double) {
         //get latitude and long and then post to /getClosestPoints()
-//        let postsEndpoint: String = "http://ridewithme-routing.elasticbeanstalk.com/getClosestPoints"
-        let postsEndpoint: String = "http://deccd670.ngrok.io/getClosestPoints"
+        let postsEndpoint: String = "http://ridewitme.elasticbeanstalk.com/getClosestPoints"
+//        let postsEndpoint: String = "http://deccd670.ngrok.io/getClosestPoints"
         guard let postsURL = NSURL(string: postsEndpoint) else {
             print("Error: cannot create URL")
             return
@@ -402,8 +436,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         func getRoutes(latA: Double, lngA: Double, latB: Double, lngB: Double) {
             /* get the nearest source and dest points and pass to the /getRoutes */
 //            removeAllAnnotations()
-//            let postsEndpoint: String = "http://ridewithme-routing.elasticbeanstalk.com/getRoutes"
-            let postsEndpoint: String = "http://deccd670.ngrok.io/getRoutes"
+            let postsEndpoint: String = "http://ridewitme.elasticbeanstalk.com/getRoutes"
+//            let postsEndpoint: String = "http://deccd670.ngrok.io/getRoutes"
             guard let postsURL = NSURL(string: postsEndpoint) else {
                 print("Error: cannot create URL")
                 return
@@ -442,7 +476,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                         print("error trying to convert data to JSON")
                         return
                     }
-                                print("The post is: " + post.description)
+//                                print("The post is: " + post.description)
                 
                     /* find the min distance  */
                     var min_dist = (((post["routes"] as! NSArray)[0] as! NSDictionary)["distance"] as! NSNumber).intValue
@@ -476,7 +510,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                                 coordinates.append(coordinate)
                             }
                         }
+                        
+                        let x : Int32 = min_duration
+                        let y : Int32 = min_dist
                         let polyline = MGLPolyline(coordinates: &coordinates, count: UInt(coordinates.count))
+//                        polyline.title( "Time: " + String(min_duration) + " Distance: " + String(min_dist));
+                        
                         self.mapView.addAnnotation(polyline)
 
                     }
@@ -495,6 +534,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     
     // Use the default marker
     func mapView(mapView: MGLMapView, imageForAnnotation annotation: MGLAnnotation) -> MGLAnnotationImage? {
+//        var annotationImage = mapView.dequeueReusableAnnotationImageWithIdentifier("green")
+//        if annotationImage == nil {
+//            let image = UIImage(named: "green")
+//            annotationImage = MGLAnnotationImage(image: image!, reuseIdentifier: "green")
+//        }
+//        
+//        return annotationImage
         return nil
     }
     
@@ -527,8 +573,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
 extension ViewController:GooglePlacesAutocompleteDelegate{
     func placeSelected(place: Place) {
         print(place.description)
-//        let details = place.getDetails(result.latitude,resultlongitude:)
-//        print details.latitude (lat: double, lng: double)
+        place.getDetails { details in
+            print(details.name)
+            print(details.latitude)
+            print(details.longitude)
+        }
     }
     
     func placeViewClosed() {

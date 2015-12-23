@@ -2,8 +2,8 @@
 //  GooglePlacesAutocomplete.swift
 //  GooglePlacesAutocomplete
 //
-//  Created by Howard Wilson on 10/02/2015.
-//  Copyright (c) 2015 Howard Wilson. All rights reserved.
+//  Created by Nina Lum on 10/02/2015.
+//  Copyright (c) 2015 Nina Lum. All rights reserved.
 //
 
 import UIKit

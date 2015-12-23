@@ -97,20 +97,38 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
+                    <toolbarItems>
+                        <barButtonItem style="plain" id="Ldr-5y-yi2">
+                            <button key="customView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="n5O-29-SGB">
+                                <rect key="frame" x="20" y="7" width="133" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="  All Stations  "/>
+                            </button>
+                            <connections>
+                                <action selector="getAllStations:" destination="vXZ-lx-hvc" id="1pe-7Y-vLD"/>
+                            </connections>
+                        </barButtonItem>
+                    </toolbarItems>
                     <navigationItem key="navigationItem" id="SSr-M3-Xuj">
                         <barButtonItem key="leftBarButtonItem" title="Get Directions" id="4e4-TL-IwX">
                             <connections>
                                 <action selector="findDirections:" destination="vXZ-lx-hvc" id="doq-y7-vZg"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" title="Share" id="9hi-pr-wOJ">
+                        <barButtonItem key="rightBarButtonItem" title="Share Location" id="9hi-pr-wOJ">
                             <connections>
                                 <action selector="shareLocation:" destination="vXZ-lx-hvc" id="zN1-6s-Gqe"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
+                    <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="T7t-SN-hKw">
+                    <rect key="frame" x="0.0" y="0.0" width="133" height="30"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <state key="normal" title="  All Stations  "/>
+                </button>
             </objects>
             <point key="canvasLocation" x="785" y="-1004"/>
         </scene>
