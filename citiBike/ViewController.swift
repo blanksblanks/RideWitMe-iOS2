@@ -9,6 +9,7 @@
 import UIKit
 import CoreLocation
 import Foundation
+import MapKit
 
 class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate {
 
@@ -45,47 +46,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     //find directions button
     @IBAction func findDirections(sender: AnyObject) {
         print("find directions button pressed")
-        let postEndpoint: String = "http://www.citibikenyc.com/stations/json"
-        guard let url = NSURL(string: postEndpoint) else {
-            print("Error: cannot create URL")
-            return
-        }
-        let urlRequest = NSURLRequest(URL: url)
-        let config = NSURLSessionConfiguration.defaultSessionConfiguration()
-        let session = NSURLSession(configuration: config)
-        let task = session.dataTaskWithRequest(urlRequest, completionHandler: {
-            (data, response, error) in
-            guard let responseData = data else {
-                print("Error: did not receive data")
-                return
-            }
-            guard error == nil else {
-                print("error calling GET on /posts/1")
-                print(error)
-                return
-            }
-            // parse the result as JSON, since that's what the API provides
-            let post: NSDictionary
-            do {
-                post = try NSJSONSerialization.JSONObjectWithData(responseData,
-                    options: []) as! NSDictionary
-            } catch  {
-                print("error trying to convert data to JSON")
-                return
-            }
-            // now we have the post, let's just print it to prove we can access it
-//            print("The post is: " + post.description)
-            if let stationList = post["stationBeanList"] as? NSArray {
-                for station in stationList {
-                    let latitude = (station["latitude"] as! NSNumber).doubleValue
-                    let longitude = (station["longitude"] as! NSNumber).doubleValue
-                    print(latitude, ", ", longitude)
-                    self.addMarker(latitude, lng: longitude)
-                }
-            }
-        })
-        task.resume()
-        
+        //getStations()
+        getClosestPoints(40.42, lngA: 73.59, latB: 30, lngB: 30)
     }
     
     
@@ -121,14 +83,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         self.presentViewController(alert, animated: true, completion: nil)
     }
     
-    func createGroup(groupTitle:String, password:String?){
-        let groupTableRow=DDBTableRow()
-        groupTableRow!.GroupTitle=groupTitle
+    func createGroup(groupTitle: String, password: String?) {
+        let groupTableRow = DDBTableRow()
+        groupTableRow!.GroupTitle = groupTitle
         groupTableRow!.GroupId = groupTitle
-        if let pwd=password{
-            groupTableRow!.Password=pwd
-        }else{
-            groupTableRow!.Password=""
+        if let pwd = password {
+            groupTableRow!.Password = pwd
+        } else {
+            groupTableRow!.Password = ""
         }
         self.insertTableRow(groupTableRow!)
     }
@@ -230,17 +192,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         
     }
     
-    func addMarker(lat: Double, lng: Double) {
-        // Declare the marker `hello` and set its coordinates, title, and subtitle
-        let hello = MGLPointAnnotation()
-        hello.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
-        hello.title = "Hello world!"
-        hello.subtitle = "Welcome to my marker"
-        // Add marker `hello` to the map
-        mapView.addAnnotation(hello)
-
-    }
-    
     func locationManager(manager: CLLocationManager, didUpdateLocations locations:[CLLocation]) {
         myLocations.append(locations[0] )
         
@@ -265,13 +216,247 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                  updateLocation(tableRow, lat:lat, log:log)
             }
            
-            
             let polyline = MGLPolyline(coordinates: &a, count: UInt(a.count))
             mapView.addAnnotation(polyline)
             self.updateMapFrame()
-            
         }
     }
+    
+    func getAllStations() {
+        let postEndpoint: String = "http://www.citibikenyc.com/stations/json"
+        guard let url = NSURL(string: postEndpoint) else {
+            print("Error: cannot create URL")
+            return
+        }
+        let urlRequest = NSURLRequest(URL: url)
+        let config = NSURLSessionConfiguration.defaultSessionConfiguration()
+        let session = NSURLSession(configuration: config)
+        let task = session.dataTaskWithRequest(urlRequest, completionHandler: {
+            (data, response, error) in
+            guard let responseData = data else {
+                print("Error: did not receive data")
+                return
+            }
+            guard error == nil else {
+                print("error calling GET on /posts/1")
+                print(error)
+                return
+            }
+            // parse the result as JSON, since that's what the API provides
+            let post: NSDictionary
+            do {
+                post = try NSJSONSerialization.JSONObjectWithData(responseData,
+                    options: []) as! NSDictionary
+            } catch  {
+                print("error trying to convert data to JSON")
+                return
+            }
+            // now we have the post, let's just print it to prove we can access it
+            print("The post is: " + post.description)
+            if let stationList = post["stationBeanList"] as? NSArray {
+                for station in stationList {
+                    let latitude = (station["latitude"] as! NSNumber).doubleValue
+                    let longitude = (station["longitude"] as! NSNumber).doubleValue
+                    //                    print(latitude, ", ", longitude)
+                    self.addMarker(latitude, lng: longitude, bikes: 1, docks: 1)
+                }
+            }
+        })
+        task.resume()
+    }
+    
+    func addMarker(lat: Double, lng: Double) {
+        // Declare the marker `hello` and set its coordinates, title, and subtitle
+        let hello = MGLPointAnnotation()
+//        hello.pinColor = Green
+        hello.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
+        hello.title = "Hello world!"
+        hello.subtitle = "Welcome to my marker"
+        // Add marker `hello` to the map
+        mapView.addAnnotation(hello)
+        
+    }
+    
+    func addMarker(lat: Double, lng: Double, bikes: Double, docks: Double) {
+        // Declare the marker `hello` and set its coordinates, title, and subtitle
+        let hello = MGLPointAnnotation()
+        hello.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
+        hello.title = "Hello world!"
+        hello.subtitle = "Welcome to my marker"
+        // Add marker `hello` to the map
+        mapView.addAnnotation(hello)
+        
+    }
+    
+    func getClosestPoints(latA: Double, lngA: Double, latB: Double, lngB: Double) {
+        //get latitude and long and then post to /getClosestPoints()
+//        let postsEndpoint: String = "http://ridewithme-routing.elasticbeanstalk.com/getClosestPoints"
+        let postsEndpoint: String = "http://f9c6aa14.ngrok.io/getClosestPoints"
+        guard let postsURL = NSURL(string: postsEndpoint) else {
+            print("Error: cannot create URL")
+            return
+        }
+        let postsUrlRequest = NSMutableURLRequest(URL: postsURL)
+        postsUrlRequest.HTTPMethod = "POST"
+        
+        //        let newPost: [String: AnyObject] = ["data": ["src": ["lat": latA, "lng": lngA] , "dest": ["lat": latB, "lng": lngB] ] ]
+        
+        
+        let stringPost = "srclat=\(latA)&srclng=\(lngA)&destlat=\(latB)&destlng=\(lngB)"
+        let data = stringPost.dataUsingEncoding(NSUTF8StringEncoding)
+        postsUrlRequest.HTTPBody = data
+//        do {
+//            postsUrlRequest.HTTPBody = try NSJSONSerialization.dataWithJSONObject(newPost, options: nil) } catch {
+//                print("error trying to convert data to json")
+//                return
+//        }
+
+        
+        /*var jsonStringAsArray = "{\n" + "\"data\": {\n" +
+                                        "\"src\": {\n" + "\"lat\": " + latA + ",\n" +
+                                            "\"lng\": " + lngA + "\n" + "},\n"
+        
+        var json2 =
+        "\"dest\": {\n" +
+            "\"lat\": " + latB + ",\n" + "\"lng\": " + lngB + "\n" +
+            "}\n" + "}\n" +  "}"
+*/
+        
+        /* jsonStringAsArray = jsonStringAsArray + json2
+        var data: NSData = jsonStringAsArray.dataUsingEncoding(NSUTF8StringEncoding)!
+        var error: NSError? */
+        
+//        let data: String = self.dataUsingEncoding(["data": ["src": ["lat": latA, "lng": lngA] , "dest": ["lat": latB, "lng": lngB] ] ]
+        
+       // do {
+//            postsUrlRequest.HTTPBody = try NSJSONSerialization.dataWithJSONObject(newPost, options: ) as! NSData    // as! NSDatapostsUrlRequest.HTTPBody = jsonPost
+//            //print(newPost)
+//            //print(jsonPost)
+//        /*} catch  {
+//            print("error trying to convert data to JSON") */
+//            return
+//        }
+        
+        let config = NSURLSessionConfiguration.defaultSessionConfiguration()
+        let session = NSURLSession(configuration: config)
+        
+        var nearestSourceLat = 0.0
+        var nearestSourceLong = 0.0
+        var nearestDestLat = 0.0
+        var nearestDestLong = 0.0
+        
+        let task = session.dataTaskWithRequest(postsUrlRequest, completionHandler: {
+            (data, response, error) in
+            guard let responseData = data else {
+                print("Error: did not receive data")
+                return
+            }
+            guard error == nil else {
+                print("error calling POST")
+                print(error)
+                return
+            }
+            
+            // parse the result as JSON, since that's what the API provides
+            let post: NSDictionary
+            do {
+                post = try NSJSONSerialization.JSONObjectWithData(responseData, options: []) as! NSDictionary
+            } catch  {
+                print("error trying to convert response data")
+                return
+            }
+            
+            nearestSourceLat = ((post["nearestSrcPoint"] as! NSArray)[0] as! NSNumber).doubleValue
+            nearestSourceLong = ((post["nearestSrcPoint"] as! NSArray)[1] as! NSNumber).doubleValue
+            
+            nearestDestLat = ((post["nearestDestPoint"] as! NSArray)[0] as! NSNumber).doubleValue
+            nearestDestLong = ((post["nearestDestPoint"] as! NSArray)[1] as! NSNumber).doubleValue
+            })
+        
+            task.resume()
+        
+            // Get routes for nearest points
+            addMarker(nearestSourceLat, lng: nearestSourceLong)
+            addMarker(nearestDestLong, lng: nearestDestLong)
+            getRoutes(nearestSourceLat, lngA: nearestSourceLong, latB: nearestDestLat, lngB: nearestDestLong)
+        
+        }
+    
+    
+        func getRoutes(latA: Double, lngA: Double, latB: Double, lngB: Double) {
+            /* get the nearest source and dest points and pass to the /getRoutes */
+//            let postsEndpoint: String = "http://ridewithme-routing.elasticbeanstalk.com/getRoutes"
+            let postsEndpoint: String = "http://f9c6aa14.ngrok.io/getRoutes"
+            guard let postsURL = NSURL(string: postsEndpoint) else {
+                print("Error: cannot create URL")
+                return
+            }
+            
+            let postsUrlRequest = NSMutableURLRequest(URL: postsURL)
+            postsUrlRequest.HTTPMethod = "POST"
+        
+//            let newPost: NSDictionary = ["source": ["lat": latA, "lng": lngA] , "destination": ["lat": latB, "lng": lngB]]
+//                do {
+//                    let jsonPost = try NSJSONSerialization.dataWithJSONObject(newPost, options: [])
+//                    postsUrlRequest.HTTPBody = jsonPost
+//                } catch  {
+//                    print("error trying to convert data to JSON")
+//                    return
+//                }
+
+                let stringPost = "srclat=\(latA)&srclng=\(lngA)&destlat=\(latB)&destlng=\(lngB)"
+                let data = stringPost.dataUsingEncoding(NSUTF8StringEncoding)
+                postsUrlRequest.HTTPBody = data
+
+                let config = NSURLSessionConfiguration.defaultSessionConfiguration()
+                let session = NSURLSession(configuration: config)
+
+                let task = session.dataTaskWithRequest(postsUrlRequest, completionHandler: {
+                    (data, response, error) in
+                    guard let responseData = data else {
+                        print("Error: did not receive data")
+                        return
+                    }
+                    guard error == nil else {
+                        print("error calling POST")
+                        print(error)
+                        return
+                    }
+                
+                    // parse the result as JSON, since that's what the API provides
+                    let post: NSDictionary
+                    do {
+                        post = try NSJSONSerialization.JSONObjectWithData(responseData,
+                            options: []) as! NSDictionary
+                    } catch  {
+                        print("error trying to convert data to JSON")
+                        return
+                    }
+                
+                    /* find the min distance  */
+                    var min_dist = (((post["routes"] as! NSArray)[0] as! NSDictionary)["distance"] as! NSNumber).intValue
+                
+                    for (_, object) in post {
+                        if ((object["distance"] as! NSNumber).intValue < min_dist) {
+                            min_dist = (object["distance"] as! NSNumber).intValue
+                        }
+                    }
+                
+                    /* find min duration */
+                    var min_duration = (((post["routes"] as! NSArray)[0] as! NSDictionary)["duration"] as! NSNumber).intValue
+                
+                    for (_, object) in post {
+                        if ((object["duration"] as! NSNumber).intValue < min_duration) {
+                            min_duration = (object["duration"] as! NSNumber).intValue
+                        }
+                    }
+                
+                })
+            
+            task.resume()
+            
+            /* Use min distance and duration and Surface details; sum three thing - just select the first route */
+        }
     
     func updateMapFrame() {
         self.mapView.centerCoordinate = self.currentLocation.coordinate
