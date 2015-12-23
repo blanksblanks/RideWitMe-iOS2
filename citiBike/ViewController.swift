@@ -8,23 +8,24 @@
 
 import UIKit
 import CoreLocation
+import Foundation
 
 class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate {
 
-    override func viewDidAppear(animated: Bool) {
-        super.viewDidAppear(animated)
-        
-        let gpaViewController = GooglePlacesAutocomplete(
-            apiKey: "AIzaSyAh9WkG-N-PSAxo6zl_AyBdQePN54PIO-0",
-            placeType: .Address
-        )
-        
-        gpaViewController.placeDelegate = self
-        
-        presentViewController(gpaViewController, animated: true, completion: nil)
-        
-        
-    }
+//    override func viewDidAppear(animated: Bool) {
+//        super.viewDidAppear(animated)
+//
+//        let gpaViewController = GooglePlacesAutocomplete(
+//            apiKey: "AIzaSyAh9WkG-N-PSAxo6zl_AyBdQePN54PIO-0",
+//            placeType: .Address
+//        )
+//
+//        gpaViewController.placeDelegate = self
+//
+//        presentViewController(gpaViewController, animated: true, completion: nil)
+//        
+//        
+//    }
     
     var mapView: MGLMapView!
     var manager: CLLocationManager!
@@ -41,6 +42,53 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     var passwordField:UITextField?
     var locationInfo:DDBTableRow?
     
+    //find directions button
+    @IBAction func findDirections(sender: AnyObject) {
+        print("find directions button pressed")
+        let postEndpoint: String = "http://www.citibikenyc.com/stations/json"
+        guard let url = NSURL(string: postEndpoint) else {
+            print("Error: cannot create URL")
+            return
+        }
+        let urlRequest = NSURLRequest(URL: url)
+        let config = NSURLSessionConfiguration.defaultSessionConfiguration()
+        let session = NSURLSession(configuration: config)
+        let task = session.dataTaskWithRequest(urlRequest, completionHandler: {
+            (data, response, error) in
+            guard let responseData = data else {
+                print("Error: did not receive data")
+                return
+            }
+            guard error == nil else {
+                print("error calling GET on /posts/1")
+                print(error)
+                return
+            }
+            // parse the result as JSON, since that's what the API provides
+            let post: NSDictionary
+            do {
+                post = try NSJSONSerialization.JSONObjectWithData(responseData,
+                    options: []) as! NSDictionary
+            } catch  {
+                print("error trying to convert data to JSON")
+                return
+            }
+            // now we have the post, let's just print it to prove we can access it
+//            print("The post is: " + post.description)
+            if let stationList = post["stationBeanList"] as? NSArray {
+                for station in stationList {
+                    let latitude = (station["latitude"] as! NSNumber).doubleValue
+                    let longitude = (station["longitude"] as! NSNumber).doubleValue
+                    print(latitude, ", ", longitude)
+                    self.addMarker(latitude, lng: longitude)
+                }
+            }
+        })
+        task.resume()
+        
+    }
+    
+    
     //share location button
     @IBAction func shareLocation(sender: AnyObject) {
         print("share my location button pressed")
@@ -55,7 +103,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
             
             if let title=self.groupTitleField?.text{
               self.createGroup(title, password: self.passwordField?.text)
-            }else{
+            } else {
                 print("Please enter group name!")
             }
            
@@ -180,14 +228,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         label.center = CGPointMake(160, 300)
         label.textAlignment = NSTextAlignment.Center
         
+    }
+    
+    func addMarker(lat: Double, lng: Double) {
         // Declare the marker `hello` and set its coordinates, title, and subtitle
         let hello = MGLPointAnnotation()
-        hello.coordinate = CLLocationCoordinate2D(latitude: 40.7326808, longitude: -73.9843407)
+        hello.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
         hello.title = "Hello world!"
         hello.subtitle = "Welcome to my marker"
-        
         // Add marker `hello` to the map
         mapView.addAnnotation(hello)
+
     }
     
     func locationManager(manager: CLLocationManager, didUpdateLocations locations:[CLLocation]) {
@@ -260,6 +311,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
 extension ViewController:GooglePlacesAutocompleteDelegate{
     func placeSelected(place: Place) {
         print(place.description)
+//        let details = place.getDetails(result.latitude,resultlongitude:)
+//        print details.latitude (lat: double, lng: double)
     }
     
     func placeViewClosed() {

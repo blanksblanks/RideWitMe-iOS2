@@ -3,11 +3,12 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8154"/>
+        <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
     </dependencies>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="GooglePlacesAutocompleteContainer" customModule="citiBike" customModuleProvider="target">
             <connections>
-                <outlet property="searchBar" destination="24m-Y8-A7A" id="kjW-B6-Zvx"/>
+                <outlet property="searchBar" destination="f5R-2c-BaK" id="uVl-9f-gU5"/>
                 <outlet property="tableView" destination="6Gg-TX-rba" id="qba-cB-o36"/>
                 <outlet property="topConstraint" destination="0qa-fT-QpK" id="x97-An-kDn"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
@@ -18,15 +19,22 @@
             <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="24m-Y8-A7A">
-                    <rect key="frame" x="0.0" y="64" width="600" height="44"/>
+                <searchBar contentMode="redraw" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="f5R-2c-BaK">
+                    <rect key="frame" x="0.0" y="118" width="600" height="44"/>
+                    <textInputTraits key="textInputTraits"/>
+                    <connections>
+                        <outlet property="delegate" destination="-1" id="U8n-0a-sSF"/>
+                    </connections>
+                </searchBar>
+                <searchBar contentMode="redraw" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="24m-Y8-A7A">
+                    <rect key="frame" x="0.0" y="225" width="600" height="44"/>
                     <textInputTraits key="textInputTraits"/>
                     <connections>
                         <outlet property="delegate" destination="-1" id="BdS-J4-gJk"/>
                     </connections>
                 </searchBar>
-                <tableView hidden="YES" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="6Gg-TX-rba">
-                    <rect key="frame" x="0.0" y="108" width="600" height="492"/>
+                <tableView hidden="YES" clipsSubviews="YES" contentMode="scaleToFill" misplaced="YES" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="6Gg-TX-rba">
+                    <rect key="frame" x="0.0" y="300" width="600" height="104"/>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     <connections>
                         <outlet property="dataSource" destination="-1" id="2Z4-Sz-bQ1"/>
@@ -36,15 +44,14 @@
             </subviews>
             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
             <constraints>
-                <constraint firstItem="24m-Y8-A7A" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="64" id="0qa-fT-QpK"/>
+                <constraint firstItem="24m-Y8-A7A" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="100" id="0qa-fT-QpK"/>
                 <constraint firstItem="6Gg-TX-rba" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="1EL-lI-b3n"/>
                 <constraint firstAttribute="trailing" secondItem="24m-Y8-A7A" secondAttribute="trailing" id="QNn-yd-yU1"/>
                 <constraint firstItem="6Gg-TX-rba" firstAttribute="top" secondItem="24m-Y8-A7A" secondAttribute="bottom" id="fGn-HG-TsT"/>
-                <constraint firstAttribute="bottom" secondItem="6Gg-TX-rba" secondAttribute="bottom" id="hWE-lP-A72"/>
+                <constraint firstAttribute="centerY" secondItem="6Gg-TX-rba" secondAttribute="bottom" id="hWE-lP-A72"/>
                 <constraint firstItem="24m-Y8-A7A" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="lPB-8T-UVk"/>
                 <constraint firstAttribute="trailing" secondItem="6Gg-TX-rba" secondAttribute="trailing" id="sgA-It-OjZ"/>
                 <constraint firstItem="6Gg-TX-rba" firstAttribute="top" secondItem="24m-Y8-A7A" secondAttribute="bottom" id="ux4-m9-QrM"/>
-                <constraint firstAttribute="centerX" secondItem="24m-Y8-A7A" secondAttribute="centerX" id="y1i-qG-wtE"/>
             </constraints>
         </view>
     </objects>
