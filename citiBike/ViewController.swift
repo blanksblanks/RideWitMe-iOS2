@@ -40,16 +40,52 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     var label = UILabel(frame: CGRectMake(0, 0, 300, 21))
     
     var groupTitleField: UITextField?
-    var passwordField:UITextField?
-    var locationInfo:DDBTableRow?
+    var passwordField: UITextField?
+    var locationInfo: DDBTableRow?
+    
+    var srcField: UITextField?
+    var destField: UITextField?
     
     //find directions button
     @IBAction func findDirections(sender: AnyObject) {
         print("find directions button pressed")
         //getAllStations()
-        getClosestPoints(40.7127, lngA: -74.0059, latB: 40.7256, lngB: -74.0156)
+         getClosestPoints(40.7127, lngA: -74.0059, latB: 40.7256, lngB: -74.0156)
+//        let alert = UIAlertController(title: "Start", message: "Destination", preferredStyle: UIAlertControllerStyle.Alert)
+//        alert.addTextFieldWithConfigurationHandler(srcTextField)
+//        alert.addTextFieldWithConfigurationHandler(destTextField)
+//        let _ = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) {
+//            UIAlertAction in
+//            NSLog("OK Pressed")
+//            if let title = self.srcField?.text {
+//                let latlngArrA = self.convertStringToArray(title)
+//                let latlngArrB = self.convertStringToArray((self.destField?.text)!)
+//                self.getClosestPoints(latlngArrA[0] as! Double, lngA: latlngArrA[1] as! Double, latB: latlngArrB[0] as! Double, lngB: latlngArrB[1] as! Double)
+//            } else {
+//                print("Please give your current geolocation and desigred geolocation!")
+//            }
+//        }
+
     }
     
+    func srcTextField(textField: UITextField!){
+        // add the text field and make the result global
+        textField.placeholder = "Longitude,Latitude"
+        groupTitleField=textField
+        
+    }
+    
+    func destTextField(textField: UITextField!){
+        // add the text field and make the result global
+        textField.placeholder = "Longitude,Latitude"
+        passwordField=textField
+        
+    }
+    
+    func convertStringToArray(s: String) -> NSArray {
+        let latlngArr = s.characters.split{$0 == ","}.map(String.init)
+        return [ ((latlngArr[0] as NSString).doubleValue), ((latlngArr[1] as NSString).doubleValue) ]
+    }
     
     //share location button
     @IBAction func shareLocation(sender: AnyObject) {
@@ -145,6 +181,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         })
 
     }
+    
     
     func groupNameTextField(textField: UITextField!){
         // add the text field and make the result global
@@ -296,7 +333,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     func getClosestPoints(latA: Double, lngA: Double, latB: Double, lngB: Double) {
         //get latitude and long and then post to /getClosestPoints()
 //        let postsEndpoint: String = "http://ridewithme-routing.elasticbeanstalk.com/getClosestPoints"
-        let postsEndpoint: String = "http://f9c6aa14.ngrok.io/getClosestPoints"
+        let postsEndpoint: String = "http://deccd670.ngrok.io/getClosestPoints"
         guard let postsURL = NSURL(string: postsEndpoint) else {
             print("Error: cannot create URL")
             return
@@ -310,11 +347,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         
         let config = NSURLSessionConfiguration.defaultSessionConfiguration()
         let session = NSURLSession(configuration: config)
-        
-        var nearestSourceLat = 0.0
-        var nearestSourceLong = 0.0
-        var nearestDestLat = 0.0
-        var nearestDestLong = 0.0
         
         let task = session.dataTaskWithRequest(postsUrlRequest, completionHandler: {
             (data, response, error) in
@@ -337,11 +369,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                 return
             }
 
-            nearestSourceLat = ((post["nearestSrcPoint"] as! NSArray)[0] as! NSNumber).doubleValue
-            nearestSourceLong = ((post["nearestSrcPoint"] as! NSArray)[1] as! NSNumber).doubleValue
+            let nearestSourceLat = ((post["nearestSrcPoint"] as! NSArray)[0] as! NSNumber).doubleValue
+            let nearestSourceLong = ((post["nearestSrcPoint"] as! NSArray)[1] as! NSNumber).doubleValue
             
-            nearestDestLat = ((post["nearestDestPoint"] as! NSArray)[0] as! NSNumber).doubleValue
-            nearestDestLong = ((post["nearestDestPoint"] as! NSArray)[1] as! NSNumber).doubleValue
+            let nearestDestLat = ((post["nearestDestPoint"] as! NSArray)[0] as! NSNumber).doubleValue
+            let nearestDestLong = ((post["nearestDestPoint"] as! NSArray)[1] as! NSNumber).doubleValue
 
             //            print("The post is: " + post.description)
             print(nearestSourceLat)
@@ -365,8 +397,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
             /* get the nearest source and dest points and pass to the /getRoutes */
 //            let postsEndpoint: String = "http://ridewithme-routing.elasticbeanstalk.com/getRoutes"
             
-
-            let postsEndpoint: String = "http://f9c6aa14.ngrok.io/getRoutes"
+            let postsEndpoint: String = "http://deccd670.ngrok.io/getRoutes"
             guard let postsURL = NSURL(string: postsEndpoint) else {
                 print("Error: cannot create URL")
                 return
@@ -386,7 +417,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                 // Read response
                 let task = session.dataTaskWithRequest(postsUrlRequest, completionHandler: {
                     (data, response, error) in
-                    print(response)
                     guard let responseData = data else {
                         print("Error: did not receive data")
                         return
@@ -425,13 +455,62 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                             min_duration = (object["duration"] as! NSNumber).intValue
                         }
                     }
-                
+                    
+                    let geometry = ((((post["routes"] as! NSArray)[0]) as! NSDictionary)["geometry"] as! NSDictionary)
+                    if geometry["type"] as? String == "LineString" {
+                        // Create an array to hold the formatted coordinates for our line
+                        var coordinates: [CLLocationCoordinate2D] = []
+                        if let locations = geometry["coordinates"] as? NSArray {
+                            // Iterate over line coordinates, stored in GeoJSON as many lng, lat arrays
+                            for location in locations {
+                                // Make a CLLocationCoordinate2D with the lat, lng
+                                let coordinate = CLLocationCoordinate2DMake(location[1].doubleValue, location[0].doubleValue)
+                                
+                                // Add coordinate to coordinates array
+                                coordinates.append(coordinate)
+                            }
+                        }
+                        let polyline = MGLPolyline(coordinates: &coordinates, count: UInt(coordinates.count))
+                        self.mapView.addAnnotation(polyline)
+
+                    }
+                    
+                    
+                // END OF CALLBACK
                 })
             
             task.resume()
             
             /* Use min distance and duration and Surface details; sum three thing - just select the first route */
         }
+    
+//    func drawPolyline() {
+//        let line = MGLPolyline(coordinates: &coordinates, count: UInt(coordinates.count))
+//                                        
+//                                        // Optionally set the title of the polyline, which can be used for:
+//                                        //  - Callout view
+//                                        //  - Object identification
+//                                        line.title = "Crema to Council Crest"
+//                                        
+//                                        // Add the annotation on the main thread
+//                                        dispatch_async(dispatch_get_main_queue(), {
+//                                            // Unowned reference to self to prevent retain cycle
+//                                            [unowned self] in
+//                                            
+//                                            })
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            catch
+//            {
+//                print("GeoJSON parsing failed")
+//            }
+//        })
+//    }
     
     func updateMapFrame() {
         self.mapView.centerCoordinate = self.currentLocation.coordinate
