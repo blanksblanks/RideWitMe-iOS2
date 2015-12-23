@@ -46,8 +46,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     //find directions button
     @IBAction func findDirections(sender: AnyObject) {
         print("find directions button pressed")
-        //getStations()
-        getClosestPoints(40.42, lngA: 73.59, latB: 30, lngB: 30)
+        //getAllStations()
+        getClosestPoints(40.7127, lngA: -74.0059, latB: 40.7256, lngB: -74.0156)
     }
     
     
@@ -268,13 +268,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
     func addMarker(lat: Double, lng: Double) {
         // Declare the marker `hello` and set its coordinates, title, and subtitle
         let hello = MGLPointAnnotation()
-//        hello.pinColor = Green
         hello.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
-        hello.title = "Hello world!"
-        hello.subtitle = "Welcome to my marker"
+        hello.title = "Latitude:\(lat)"
+        hello.subtitle = "Longitude:\(lng)"
         // Add marker `hello` to the map
         mapView.addAnnotation(hello)
-        
     }
     
     func addMarker(lat: Double, lng: Double, bikes: Double, docks: Double) {
@@ -288,6 +286,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         
     }
     
+    func markClosestPoints(latA: Double, lngA: Double, latB: Double, lngB: Double) {
+        addMarker(latA, lng: lngA)
+        print("\(latA), \(lngA)")
+        addMarker(latB, lng: lngB)
+        print("\(latB), \(lngB)")
+    }
+    
     func getClosestPoints(latA: Double, lngA: Double, latB: Double, lngB: Double) {
         //get latitude and long and then post to /getClosestPoints()
 //        let postsEndpoint: String = "http://ridewithme-routing.elasticbeanstalk.com/getClosestPoints"
@@ -299,43 +304,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         let postsUrlRequest = NSMutableURLRequest(URL: postsURL)
         postsUrlRequest.HTTPMethod = "POST"
         
-        //        let newPost: [String: AnyObject] = ["data": ["src": ["lat": latA, "lng": lngA] , "dest": ["lat": latB, "lng": lngB] ] ]
-        
-        
         let stringPost = "srclat=\(latA)&srclng=\(lngA)&destlat=\(latB)&destlng=\(lngB)"
         let data = stringPost.dataUsingEncoding(NSUTF8StringEncoding)
         postsUrlRequest.HTTPBody = data
-//        do {
-//            postsUrlRequest.HTTPBody = try NSJSONSerialization.dataWithJSONObject(newPost, options: nil) } catch {
-//                print("error trying to convert data to json")
-//                return
-//        }
-
-        
-        /*var jsonStringAsArray = "{\n" + "\"data\": {\n" +
-                                        "\"src\": {\n" + "\"lat\": " + latA + ",\n" +
-                                            "\"lng\": " + lngA + "\n" + "},\n"
-        
-        var json2 =
-        "\"dest\": {\n" +
-            "\"lat\": " + latB + ",\n" + "\"lng\": " + lngB + "\n" +
-            "}\n" + "}\n" +  "}"
-*/
-        
-        /* jsonStringAsArray = jsonStringAsArray + json2
-        var data: NSData = jsonStringAsArray.dataUsingEncoding(NSUTF8StringEncoding)!
-        var error: NSError? */
-        
-//        let data: String = self.dataUsingEncoding(["data": ["src": ["lat": latA, "lng": lngA] , "dest": ["lat": latB, "lng": lngB] ] ]
-        
-       // do {
-//            postsUrlRequest.HTTPBody = try NSJSONSerialization.dataWithJSONObject(newPost, options: ) as! NSData    // as! NSDatapostsUrlRequest.HTTPBody = jsonPost
-//            //print(newPost)
-//            //print(jsonPost)
-//        /*} catch  {
-//            print("error trying to convert data to JSON") */
-//            return
-//        }
         
         let config = NSURLSessionConfiguration.defaultSessionConfiguration()
         let session = NSURLSession(configuration: config)
@@ -356,6 +327,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                 print(error)
                 return
             }
+            print(response)
             
             // parse the result as JSON, since that's what the API provides
             let post: NSDictionary
@@ -365,21 +337,29 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                 print("error trying to convert response data")
                 return
             }
-            
+  
+
             nearestSourceLat = ((post["nearestSrcPoint"] as! NSArray)[0] as! NSNumber).doubleValue
             nearestSourceLong = ((post["nearestSrcPoint"] as! NSArray)[1] as! NSNumber).doubleValue
             
             nearestDestLat = ((post["nearestDestPoint"] as! NSArray)[0] as! NSNumber).doubleValue
             nearestDestLong = ((post["nearestDestPoint"] as! NSArray)[1] as! NSNumber).doubleValue
+
+            //            print("The post is: " + post.description)
+            print(nearestSourceLat)
+            print(nearestSourceLong)
+            print(nearestDestLat)
+            print(nearestDestLong)
+            
+            self.addMarker(nearestSourceLat, lng: nearestSourceLong)
+            self.addMarker(nearestDestLat, lng: nearestDestLong)
+
+            // Get routes for nearest points
+            self.getRoutes(nearestSourceLat, lngA: nearestSourceLong, latB: nearestDestLat, lngB: nearestDestLong)
+
             })
         
             task.resume()
-        
-            // Get routes for nearest points
-            addMarker(nearestSourceLat, lng: nearestSourceLong)
-            addMarker(nearestDestLong, lng: nearestDestLong)
-            getRoutes(nearestSourceLat, lngA: nearestSourceLong, latB: nearestDestLat, lngB: nearestDestLong)
-        
         }
     
     
@@ -394,15 +374,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
             
             let postsUrlRequest = NSMutableURLRequest(URL: postsURL)
             postsUrlRequest.HTTPMethod = "POST"
-        
-//            let newPost: NSDictionary = ["source": ["lat": latA, "lng": lngA] , "destination": ["lat": latB, "lng": lngB]]
-//                do {
-//                    let jsonPost = try NSJSONSerialization.dataWithJSONObject(newPost, options: [])
-//                    postsUrlRequest.HTTPBody = jsonPost
-//                } catch  {
-//                    print("error trying to convert data to JSON")
-//                    return
-//                }
 
                 let stringPost = "srclat=\(latA)&srclng=\(lngA)&destlat=\(latB)&destlng=\(lngB)"
                 let data = stringPost.dataUsingEncoding(NSUTF8StringEncoding)
