@@ -327,7 +327,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                 print(error)
                 return
             }
-            print(response)
             
             // parse the result as JSON, since that's what the API provides
             let post: NSDictionary
@@ -337,7 +336,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                 print("error trying to convert response data")
                 return
             }
-  
 
             nearestSourceLat = ((post["nearestSrcPoint"] as! NSArray)[0] as! NSNumber).doubleValue
             nearestSourceLong = ((post["nearestSrcPoint"] as! NSArray)[1] as! NSNumber).doubleValue
@@ -366,6 +364,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
         func getRoutes(latA: Double, lngA: Double, latB: Double, lngB: Double) {
             /* get the nearest source and dest points and pass to the /getRoutes */
 //            let postsEndpoint: String = "http://ridewithme-routing.elasticbeanstalk.com/getRoutes"
+            
+
             let postsEndpoint: String = "http://f9c6aa14.ngrok.io/getRoutes"
             guard let postsURL = NSURL(string: postsEndpoint) else {
                 print("Error: cannot create URL")
@@ -375,6 +375,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
             let postsUrlRequest = NSMutableURLRequest(URL: postsURL)
             postsUrlRequest.HTTPMethod = "POST"
 
+                // Post request
                 let stringPost = "srclat=\(latA)&srclng=\(lngA)&destlat=\(latB)&destlng=\(lngB)"
                 let data = stringPost.dataUsingEncoding(NSUTF8StringEncoding)
                 postsUrlRequest.HTTPBody = data
@@ -382,8 +383,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                 let config = NSURLSessionConfiguration.defaultSessionConfiguration()
                 let session = NSURLSession(configuration: config)
 
+                // Read response
                 let task = session.dataTaskWithRequest(postsUrlRequest, completionHandler: {
                     (data, response, error) in
+                    print(response)
                     guard let responseData = data else {
                         print("Error: did not receive data")
                         return
@@ -403,11 +406,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                         print("error trying to convert data to JSON")
                         return
                     }
+                                print("The post is: " + post.description)
                 
                     /* find the min distance  */
                     var min_dist = (((post["routes"] as! NSArray)[0] as! NSDictionary)["distance"] as! NSNumber).intValue
                 
-                    for (_, object) in post {
+                    for (object) in (post["routes"] as! NSArray) {
                         if ((object["distance"] as! NSNumber).intValue < min_dist) {
                             min_dist = (object["distance"] as! NSNumber).intValue
                         }
@@ -416,7 +420,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDel
                     /* find min duration */
                     var min_duration = (((post["routes"] as! NSArray)[0] as! NSDictionary)["duration"] as! NSNumber).intValue
                 
-                    for (_, object) in post {
+                    for (object) in (post["routes"] as! NSArray) {
                         if ((object["duration"] as! NSNumber).intValue < min_duration) {
                             min_duration = (object["duration"] as! NSNumber).intValue
                         }
